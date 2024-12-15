@@ -39,25 +39,32 @@ const SingleComponent = ({ eventpath, eventName, eventDescription }) => {
     // Register User for the event
     const handleRegister = async () => {
         if (!checkUserLogin()) return;
-
+    
         if (!isRegistered) {
             const updatedUsers = [...registeredUsers, user.uid];
-            const updatedUserJoinedEvents = [...(user?.joinedSingleEvent || []), eventpath];
-
+    
+            // Fetch the existing joinedSingleEvent array for the user
+            const userDoc = await read(`users/${user.uid}`);
+            const existingJoinedEvents = Array.isArray(userDoc?.joinedSingleEvent) 
+                ? userDoc.joinedSingleEvent 
+                : []; // Ensure it's an array
+    
+            const updatedUserJoinedEvents = [...existingJoinedEvents, eventpath];
+    
             // Update the event's registered users
             const eventDocPath = `events/${eventpath}`; // Full path to the event document
-            await write(eventDocPath, { registeredUsers: updatedUsers });
-
-            // Update the user's joinedSingleEvent
-            await write(`users/${user.uid}`, { joinedSingleEvent: updatedUserJoinedEvents });
-
+            await write(eventDocPath, { registeredUsers: updatedUsers }, { merge: true }); // Use merge to avoid overwriting
+    
+            // Update the user's joinedSingleEvent array
+            await write(`users/${user.uid}`, { joinedSingleEvent: updatedUserJoinedEvents }, { merge: true });
+    
             setRegisteredUsers(updatedUsers);
             setIsRegistered(true);
             alert("Successfully registered!");
         } else {
             alert("You are already registered for this event.");
         }
-    };
+    };    
 
     // Unregister User from the event
     const handleUnregister = async () => {

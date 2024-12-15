@@ -25,7 +25,7 @@ const Profile = () => {
       // Fetch the user's joined events
       fetchJoinedEvents(currentUser.uid);
     } else {
-      navigate("/login");
+      navigate("/Auth");
     }
   }, [navigate]);
 
@@ -124,51 +124,57 @@ const Profile = () => {
   }
 
   return (
-    <div>
-      <h1>Profile Page</h1>
-      <form onSubmit={(e) => e.preventDefault()}>
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg text-black">
+      <h1 className="text-2xl font-bold mb-4">Profile Page</h1>
+      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         <div>
-          <label>Name</label>
+          <label className="block text-sm font-medium text-gray-700">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label>Email</label>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
             type="email"
             value={user ? user.email : ""}
             disabled
             readOnly
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100"
           />
         </div>
         <div>
-          <button onClick={handleUpdateProfile}>Update Profile</button>
+          <button onClick={handleUpdateProfile} className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition">
+            Update Profile
+          </button>
         </div>
       </form>
 
-      <div>
-        <p>Email Verified: {emailVerified ? "Yes" : "No"}</p>
+      <div className="mt-4">
+        <p className="text-sm">Email Verified: {emailVerified ? "Yes" : "No"}</p>
         {!emailVerified && (
-          <button onClick={handleVerifyEmail}>Verify Email</button>
+          <button onClick={handleVerifyEmail} className="mt-2 bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600 transition">
+            Verify Email
+          </button>
         )}
       </div>
 
       {/* Display Joined Single Events */}
-      <div>
-        <h2>Joined Single Events</h2>
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold">Joined Single Events</h2>
         {eventsLoading ? (
           <p>Loading your events...</p>
         ) : joinedSingleEvents.length === 0 ? (
           <p>You haven't joined any single events yet.</p>
         ) : (
-          <ul>
+          <ul className="mt-2 space-y-2">
             {joinedSingleEvents.map((event, index) => (
-              <li key={index}>
-                <strong>{event.eventName}</strong> - {event.eventDescription}
+              <li key={index} className="border border-gray-200 p-4 rounded-md">
+                <strong className="text-lg">{event.eventName}</strong> - {event.eventDescription}
               </li>
             ))}
           </ul>
@@ -176,27 +182,27 @@ const Profile = () => {
       </div>
 
       {/* Display Joined Team Events */}
-      <div>
-        <h2>Joined Team Events</h2>
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold">Joined Team Events</h2>
         {eventsLoading ? (
           <p>Loading your team events...</p>
         ) : joinedTeamEvents.length === 0 ? (
           <p>You haven't joined any team events yet.</p>
         ) : (
-          <table>
+          <table className="min-w-full border border-gray-200 mt-2">
             <thead>
-              <tr>
-                <th>Event Path</th>
-                <th>Team Name</th>
-                <th>Team Members</th>
+              <tr className="bg-gray-100">
+                <th className="border border-gray-300 p-2">Event Path</th>
+                <th className="border border-gray-300 p-2">Team Name</th>
+                <th className="border border-gray-300 p-2">Team Members</th>
               </tr>
             </thead>
             <tbody>
               {joinedTeamEvents.map((event, index) => (
-                <tr key={index}>
-                  <td>{event.eventpath}</td>
-                  <td>{event.teamName}</td>
-                  <td>
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="border border-gray-300 p-2">{event.eventpath}</td>
+                  <td className="border border-gray-300 p-2">{event.teamName}</td>
+                  <td className="border border-gray-300 p-2">
                     {event.teamMembers.length === 0
                       ? "No members"
                       : event.teamMembers.join(", ")}

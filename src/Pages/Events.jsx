@@ -1,73 +1,118 @@
 import React, { useState } from "react";
+import { read, auth, write } from '../scripts/firebase';
+import { useNavigate } from 'react-router-dom';
 import SingleComponent from "../Components/single";
 import TeamComponent from "../Components/team";
+import eventsData from '../scripts/eventData'
 
-const eventsData = {
-  flagship: [
-    {
-      name: "BATTLE OF BANDS",
-      description: "The ultimate showdown of musical prowess! A battle where raw talent collides with dazzling vitality. Witness local bands duke it out over the coveted title of Best Band on Campus, as they unleash their original compositions and captivate the audience with their musical mastery",
-      type: "teamEvent", // Added event type
-      eventPath: "battleofbands"
-    },
-    {
-      name: "PANACHE",
-      description: "The fashion competition of BLITZSCHLAG is a platform for fashionistas to push boundaries, challenge perceptions, and redefine the very essence of beauty. Expect innovative designs, breathtaking performances, and a celebration of creativity like no other.",
-      type: "teamEvent", // Added event type
-      eventPath: "panache"
-    }
-  ],
-  club: [
-    {
-      name: "Sargam(Classical Music & Dance Club)",
-      description: "A Standalone instrument playing competition. where participants must choose a song to play on their instrument and they will be judged on the basis of their technicalities and resemblance. Melodic and percussion instruments will be judged separately.",
-      type: "singleEvent", // Added event type
-      eventPath: "sargamclassicalmusicdanceclub"
-    },
-    {
-      name: "Voice Choice(Classical Music and Dance Club)",
-      description: "Music is the shorthand of emotion. It has the ability to take people out of themselves for a few hours. Classical Music & Dance Club is delighted to announce Voice Choice, a Solo Singing Competition. It is a perennial event which enjoys immense participation from all across the country. So put your best foot forward, and immerse yourself in the phantom sphere of Blitzschlag.",
-      type: "singleEvent", // Added event type
-      eventPath: "voicechoiceclassicalmusicanddanceclub"
-    }
-  ],
-  attractions: [
-    {
-      name: "Treasure Hunt",
-      description: "Treasure hunt is a game in which each team attempts to be the first in finding something that has been hidden all across the campus using clues. Guessing, the first clue leads to the next spot as the game continues, and the final clue leads to the ultimate hidden treasure. The winning team will be awarded with alluring rewards. The game for the Sherlocks amongst the crowd, Treasure Hunt is for all the Mystery solvers out there.",
-      type: "teamEvent", // Added event type
-      eventPath: "treasurehunt"
-    },
-    {
-      name: "Blind Maze",
-      description: "Ever get lost in some new neighbourhood or while exploring some new areas in campus, what helps in that situation? THAT’S RIGHT! GOOGLE MAPS!! Lets explore this feeling of lost and found in this fun competition of BLIND MAZE!!",
-      type: "teamEvent", // Added event type
-      eventPath: "blindmaze"
-    }
-  ],
-  fun: [
-    {
-      name: "Golgappa",
-      description: "Indulge in our Golgappa Eating Challenge – showcase speed and precision with this beloved South Asian street food. Join the fun, devouring these small, flavourful puris within a set me.",
-      type: "singleEvent", // Added event type
-      eventPath: "golgappa"
-    },
-    {
-      name: "Bolti Band",
-      description: "A fun and engaging event to participate in duos where one will be whispering some funny phrases and the receiver has to decode it, while listening to their favourite music!",
-      type: "singleEvent", // Added event type
-      eventPath: "boltiband"
-    }
-  ]
-};
 
 const Events = () => {
+  const navigate = useNavigate();
+  const user = auth.currentUser;
   const [activeTab, setActiveTab] = useState("flagship");
+  const [teamCode, setTeamCode] = useState("");
 
+  const checkUserLogin = () => {
+    if (!user) {
+      alert("Please log in first.");
+      navigate('/login'); // Use navigate to redirect to the login page
+      return false;
+    }
+    return true;
+  };
+
+  const handleJoinTeam = async () => {
+    if (!checkUserLogin()) return; // Check if the user is logged in
+  
+    if (!teamCode) {
+      alert("Invalid Team Code");
+      return;
+    }
+  
+    // Fetch the team document
+    const teamDoc = await read(`teams/${teamCode}`);
+    if (!teamDoc) {
+      alert("Team not found");
+      return;
+    }
+  
+    // Extract the event path (stored in 'event' attribute of the team)
+    const eventPath = teamDoc.event;
+    if (!eventPath) {
+      alert("Event data for this team is missing.");
+      return;
+    }
+  
+    // Retrieve event data for max team size
+    const eventDoc = await read(`events/${eventPath}`);
+    // || !eventDoc.maxTeamSize
+    if (!eventDoc) {
+      alert("Event data is missing or incomplete.");
+      return;
+    }
+  
+    const maxTeamSize = eventDoc.maxTeamSize;
+  
+    // Check if the user has already joined a team for this event
+    const userDoc = await read(`users/${user.uid}`);
+    const registeredEvents = Array.isArray(userDoc?.joinedTeamsEvent) ? userDoc.joinedTeamsEvent : [];
+  
+    // Prevent joining another team for the same event
+    if (registeredEvents.some(event => event.eventpath === eventPath)) {
+      alert("You have already joined a team for this event. You cannot join another team.");
+      return;
+    }
+  
+    // Check if the user is already a member of this team
+    if (teamDoc.members.includes(user.uid)) {
+      alert("You are already a member of this team.");
+      return;
+    }
+  
+    // Check if the team has reached its max capacity
+    if (teamDoc.members.length >= maxTeamSize) {
+      alert("This team is full.");
+      return;
+    }
+  
+    // Update the team's members array to include the current user
+    await write(
+      `teams/${teamCode}`,
+      {
+        members: [...teamDoc.members, user.uid], // Add user to members array
+      },
+      { merge: true } // Prevent overwriting other fields
+    );
+  
+    // Update the user's document to track the joined team and event
+    await write(
+      `users/${user.uid}`,
+      {
+        joinedTeamsEvent: [...registeredEvents, { eventpath: eventPath, teamCode }],
+      },
+      { merge: true } // Avoid overwriting other user data
+    );
+  
+    alert("Successfully joined the team!");
+  };
+  
   return (
     <div className="p-6">
       <h1 className="text-4xl font-bold text-center mb-8">Events</h1>
-
+      <div className="mb-5 flex justify-center">
+        <form onSubmit={(e) => { e.preventDefault(); handleJoinTeam(); }}>
+          <input
+            type="text"
+            placeholder="Enter Team Code"
+            value={teamCode}
+            onChange={(e) => setTeamCode(e.target.value)}
+            className="w-96 mr-10 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            Join Team
+          </button>
+        </form>
+      </div>
       <div className="flex justify-center space-x-4 mb-6">
         {Object.keys(eventsData).map((tab) => (
           <button
