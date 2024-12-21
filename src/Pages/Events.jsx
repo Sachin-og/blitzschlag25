@@ -3,8 +3,8 @@ import { read, auth, write } from '../scripts/firebase';
 import { useNavigate } from 'react-router-dom';
 import SingleComponent from "../Components/single";
 import TeamComponent from "../Components/team";
-import eventsData from '../scripts/eventData'
-
+import eventsData from '../scripts/eventData';
+import { toast } from 'react-toastify'; // Import toast from react-toastify
 
 const Events = () => {
   const navigate = useNavigate();
@@ -14,8 +14,8 @@ const Events = () => {
 
   const checkUserLogin = () => {
     if (!user) {
-      alert("Please log in first.");
-      navigate('/Auth');// Use navigate to redirect to the login page
+      toast.error("Please log in first.", { autoClose: 5000 }); // Toast for login error
+      navigate('/Auth'); // Use navigate to redirect to the login page
       return false;
     }
     return true;
@@ -25,21 +25,21 @@ const Events = () => {
     if (!checkUserLogin()) return; // Check if the user is logged in
   
     if (!teamCode) {
-      alert("Invalid Team Code");
+      toast.error("Invalid Team Code", { autoClose: 5000 }); // Toast for invalid team code
       return;
     }
   
     // Fetch the team document
     const teamDoc = await read(`teams/${teamCode}`);
     if (!teamDoc) {
-      alert("Team not found");
+      toast.error("Team not found", { autoClose: 5000 }); // Toast for team not found
       return;
     }
   
     // Extract the event path (stored in 'event' attribute of the team)
     const eventPath = teamDoc.event;
     if (!eventPath) {
-      alert("Event data for this team is missing.");
+      toast.error("Event data for this team is missing.", { autoClose: 5000 }); // Toast for missing event data
       return;
     }
   
@@ -47,7 +47,7 @@ const Events = () => {
     const eventDoc = await read(`events/${eventPath}`);
     // || !eventDoc.maxTeamSize
     if (!eventDoc) {
-      alert("Event data is missing or incomplete.");
+      toast.error("Event data is missing or incomplete.", { autoClose: 5000 }); // Toast for incomplete event data
       return;
     }
   
@@ -59,19 +59,19 @@ const Events = () => {
   
     // Prevent joining another team for the same event
     if (registeredEvents.some(event => event.eventpath === eventPath)) {
-      alert("You have already joined a team for this event. You cannot join another team.");
+      toast.info("You have already joined a team for this event. You cannot join another team.", { autoClose: 5000 }); // Toast for already joined event
       return;
     }
   
     // Check if the user is already a member of this team
     if (teamDoc.members.includes(user.uid)) {
-      alert("You are already a member of this team.");
+      toast.info("You are already a member of this team.", { autoClose: 5000 }); // Toast for already a team member
       return;
     }
   
     // Check if the team has reached its max capacity
     if (teamDoc.members.length >= maxTeamSize) {
-      alert("This team is full.");
+      toast.error("This team is full.", { autoClose: 5000 }); // Toast for team full
       return;
     }
   
@@ -93,7 +93,7 @@ const Events = () => {
       { merge: true } // Avoid overwriting other user data
     );
   
-    alert("Successfully joined the team!");
+    toast.success("Successfully joined the team!", { autoClose: 5000 }); // Toast for success
   };
   
   return (

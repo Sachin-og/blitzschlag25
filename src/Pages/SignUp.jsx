@@ -27,11 +27,11 @@ const SignUp = ({ toggleForm }) => {
     e.preventDefault();
 
     if (pwd !== confirmPwd) {
-      alert("Password and Confirm Password are not the same");
+      toast.error("Password and Confirm Password are not the same", { autoClose: 5000 });
       return;
     }
     if (pwd.length < 8) {
-      alert("Password must be at least 8 characters long");
+      toast.error("Password must be at least 8 characters long", { autoClose: 5000 });
       return;
     }
 
@@ -39,7 +39,7 @@ const SignUp = ({ toggleForm }) => {
       const methods = await fetchSignInMethodsForEmail(auth, email);
     
       if (methods.length > 0) {
-        alert("An account with this email already exists.");
+        toast.error("An account with this email already exists.", { autoClose: 5000 });
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pwd);
         const user = userCredential.user;

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { getAuth, updateProfile, sendEmailVerification } from "firebase/auth";
 import { read, write } from "../scripts/firebase";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify'; // Import the toast function
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -90,7 +92,7 @@ const Profile = () => {
 
   const handleUpdateProfile = async () => {
     if (!name) {
-      alert("Name is required!");
+      toast.info("Name is required.", { autoClose: 5000 });
       return;
     }
 
@@ -102,18 +104,18 @@ const Profile = () => {
         name: name, // Updated name
       });
 
-      alert("Profile updated successfully");
+      toast.success("Profile updated successfully", { autoClose: 5000 });
     } catch (error) {
-      alert("Error updating profile: " + error.message);
+      toast.error("Error updating profile: " + error.message, { autoClose: 5000 });
     }
   };
 
   const handleVerifyEmail = async () => {
     try {
       await sendEmailVerification(auth.currentUser);
-      alert("Verification email sent!");
+      toast.info("Verification email sent!", { autoClose: 5000 });
     } catch (error) {
-      alert("Error sending verification email: " + error.message);
+      toast.success("Error sending verification email:", { autoClose: 5000 });
     }
   };
 

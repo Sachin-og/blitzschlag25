@@ -1,6 +1,8 @@
 import { React, useState, useEffect } from 'react';
 import { read, auth, write } from '../scripts/firebase';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // Import the toast function
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 const SingleComponent = ({ eventpath, eventName, eventDescription }) => {
     const user = auth.currentUser;
@@ -29,8 +31,8 @@ const SingleComponent = ({ eventpath, eventName, eventDescription }) => {
 
     const checkUserLogin = () => {
         if (!user) {
-            alert("Please log in first.");
-            navigate('/login'); 
+            toast.error("Please log in first.", { autoClose: 5000 }); // Toast for login alert
+            navigate('/Auth'); 
             return false;
         }
         return true;
@@ -60,9 +62,9 @@ const SingleComponent = ({ eventpath, eventName, eventDescription }) => {
     
             setRegisteredUsers(updatedUsers);
             setIsRegistered(true);
-            alert("Successfully registered!");
+            toast.success("Successfully registered!", { autoClose: 5000 }); // Toast for success
         } else {
-            alert("You are already registered for this event.");
+            toast.info("You are already registered for this event.", { autoClose: 5000 }); // Toast for already registered
         }
     };    
 
@@ -83,9 +85,9 @@ const SingleComponent = ({ eventpath, eventName, eventDescription }) => {
 
             setRegisteredUsers(updatedUsers);
             setIsRegistered(false);
-            alert("Successfully unregistered!");
+            toast.success("Successfully unregistered!", { autoClose: 5000 }); // Toast for success
         } else {
-            alert("You are not registered for this event.");
+            toast.info("You are not registered for this event.", { autoClose: 5000 }); // Toast for not registered
         }
     };
 
@@ -115,3 +117,4 @@ const SingleComponent = ({ eventpath, eventName, eventDescription }) => {
 };
 
 export default SingleComponent;
+

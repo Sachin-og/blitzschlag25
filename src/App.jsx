@@ -13,7 +13,8 @@ import Auth from './Pages/Auth';
 import Pronight from './Pages/Pronight';
 import Pass from './Pages/Pass';
 import Error from './Pages/Error';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function App() {
   return (
     <div className='bg-[#0b0d10] w-screen h-screen text-white'>
@@ -34,6 +35,7 @@ function App() {
           <Route path="*" element={<Error />} />
         </Routes>
       </div>
+      <ToastContainer />
     </div>
   );
 }

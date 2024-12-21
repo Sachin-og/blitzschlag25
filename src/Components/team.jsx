@@ -2,6 +2,7 @@ import { React, useState } from 'react';
 import { read, auth, write } from '../scripts/firebase';
 import { v4 as uuidv4 } from 'uuid'; // Import uuidv4
 import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
+import { toast } from 'react-toastify'; // Import toast from react-toastify
 
 const TeamComponent = ({ eventpath, eventName, eventDescription }) => {
   const user = auth.currentUser;
@@ -10,7 +11,7 @@ const TeamComponent = ({ eventpath, eventName, eventDescription }) => {
 
   const checkUserLogin = () => {
     if (!user) {
-      alert("Please log in first.");
+      toast.error("Please log in first.", { autoClose: 5000 }); // Toast for login error
       navigate('/Auth'); // Use navigate to redirect to the login page
       return false;
     }
@@ -21,7 +22,7 @@ const TeamComponent = ({ eventpath, eventName, eventDescription }) => {
     if (!checkUserLogin()) return; // Check if the user is logged in
   
     if (!teamName) {
-      alert("Invalid Team Name");
+      toast.error("Invalid Team Name", { autoClose: 5000 }); // Toast for invalid team name
       return;
     }
   
@@ -30,7 +31,7 @@ const TeamComponent = ({ eventpath, eventName, eventDescription }) => {
   
     // Check if the user is already registered for the event
     if (registeredEvents.some(event => event.eventpath === eventpath)) {
-      alert("Already Registered For this Event");
+      toast.info("Already Registered For this Event", { autoClose: 5000 }); // Toast for already registered
       return;
     }
   
@@ -65,7 +66,7 @@ const TeamComponent = ({ eventpath, eventName, eventDescription }) => {
       joinedTeamsEvent: [...registeredEvents, { eventpath, teamCode: newTeamCode }],
     });
   
-    alert(`Team created successfully! Your Team Code: ${newTeamCode}`);
+    toast.success(`Team created successfully! Your Team Code: ${newTeamCode}`); // Toast for success
   };
   
   return (

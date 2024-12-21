@@ -9,6 +9,7 @@ import {
   fetchSignInMethodsForEmail
 } from "firebase/auth";
 import { app, write, read } from '../scripts/firebase'; // Ensure `read` is implemented to fetch data
+import { toast } from 'react-toastify'; // Import toast from react-toastify
 
 const Login = ({ toggleForm }) => {
   const [email, setEmail] = useState('');
@@ -33,16 +34,16 @@ const Login = ({ toggleForm }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isValidEmail(email)) {
-      alert('Please enter a valid email address');
+      toast.error('Please enter a valid email address', { autoClose: 5000 }); // Toast for invalid email
       return;
     }
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
-        alert("Login Successful");
+        toast.success("Login Successful", { autoClose: 5000 }); // Toast for successful login
         navigate('/profile');
       })
       .catch((error) => {
-        alert(`Login Error: ${error.message}`);
+        toast.error(`Login Error: ${error.message}`, { autoClose: 5000 }); // Toast for login error
       });
   };
 
@@ -54,7 +55,7 @@ const Login = ({ toggleForm }) => {
 
       const signInMethods = await fetchSignInMethodsForEmail(auth, user.email);
       if (signInMethods.length > 0 && !signInMethods.includes('google.com')) {
-        alert("This email is already registered with a different method. Please log in using that method.");
+        toast.error("This email is already registered with a different method. Please log in using that method.", { autoClose: 5000 }); // Toast for email already registered
         return;
       }
 
@@ -68,9 +69,10 @@ const Login = ({ toggleForm }) => {
         });
       }
 
+      toast.success("Google Sign-In Successful", { autoClose: 5000 }); // Toast for Google sign-in success
       navigate('/profile');
     } catch (error) {
-      alert(`Google Sign-In Error: ${error.message}`);
+      toast.error(`Google Sign-In Error: ${error.message}`, { autoClose: 5000 }); // Toast for Google sign-in error
     }
   };
 
